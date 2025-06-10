@@ -1,0 +1,364 @@
+/* * {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background: #FFFFFF;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #000;
+}
+
+.screen {
+  background-color: #D3D3D3;
+  border: 2px solid #FFFFFF;
+  border-radius: 0px;
+  padding: 20px;
+  text-align: center;
+  width: 50%;
+  height: 100%;
+  max-width: 500px;
+  max-height: 600px;
+  min-width: 350px;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  -webkit-border-radius: 0px;
+  -moz-border-radius: 0px;
+  -ms-border-radius: 0px;
+  -o-border-radius: 0px;
+}
+
+.content-container {
+  background-color: #FFFFFF;
+  border: 2px solid #FFFFFF;
+  border-radius: 10px;
+  padding: 15px;
+  width: 80%;
+  height: 80%;
+  max-width: 400px;
+  max-height: 400px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin: 156px 50px;
+}
+
+.language-toggle {
+  position: absolute;
+  top: 95px;
+  left: 85px;
+}
+
+#language-toggle {
+  background-color: #D3D3D3;
+  color: #000;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+#language-toggle:hover {
+  background-color: #C0C0C0;
+}
+
+#language-toggle:active {
+  background-color: #A9A9A9;
+}
+
+.menu-toggle {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
+#menu-button {
+  background-color: #D3D3D3;
+  color: #000;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+#menu-button:hover {
+  background-color: #C0C0C0;
+}
+
+#menu-button:active {
+  background-color: #A9A9A9;
+}
+
+.sound-toggle {
+  position: absolute;
+  top: 10px;
+  right: 50px;
+}
+
+#sound-button {
+  background-color: #D3D3D3;
+  color: #000;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+#sound-button:hover {
+  background-color: #C0C0C0;
+}
+
+#sound-button:active {
+  background-color: #A9A9A9;
+}
+
+#home-screen h1 {
+  font-size: 2.5rem;
+  margin-bottom: 30px;
+  color: #000;
+}
+
+#home-screen button,
+#difficulty-screen button,
+#custom-settings-screen button,
+#game-screen button {
+  background-color: #D3D3D3;
+  color: #000;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1rem;
+  margin: 10px 0;
+  display: block;
+  width: 200px;
+  margin-left: auto;
+  margin-right: auto;
+  transition: all 0.3s ease;
+}
+
+#home-screen button:hover,
+#difficulty-screen button:hover,
+#custom-settings-screen button:hover,
+#game-screen button:hover {
+  background-color: #C0C0C0;
+}
+
+#home-screen button:active,
+#difficulty-screen button:active,
+#custom-settings-screen button:active,
+#game-screen button:active {
+  background-color: #A9A9A9;
+}
+
+#difficulty-screen h2 {
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+  color: #000;
+}
+
+#custom-settings-screen h2 {
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+  color: #000;
+}
+
+.setting {
+  margin: 15px 0;
+}
+
+.setting label {
+  display: block;
+  font-size: 1.2rem;
+  margin-bottom: 10px;
+  color: #000;
+}
+
+.setting-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+.setting-controls button {
+  width: 40px;
+  height: 40px;
+  font-size: 1.2rem;
+  padding: 0;
+}
+
+.setting-controls span {
+  font-size: 1.2rem;
+  width: 50px;
+  text-align: center;
+  color: #000;
+}
+
+#game-screen h2 {
+  font-size: 1.5rem;
+  margin: 10px 0;
+  color: #000;
+}
+
+#game-screen p {
+  font-size: 1.2rem;
+  margin: 10px 0;
+  color: #000;
+}
+
+#restart-button {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  width: auto;
+}
+
+.grid {
+  display: grid;
+  gap: 0;
+  width: 80%;
+  height: 80%;
+  max-width: 400px;
+  max-height: 400px;
+  margin: 20px auto;
+  background-image: url('background.png');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  position: relative;
+  border: none;
+}
+
+.cell {
+  background-color: transparent;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.cell:hover:not(.fly):not(.correct-cell):not(.incorrect-cell) {
+  background-color: #E0E0E0;
+}
+
+.cell:active:not(.fly):not(.correct-cell):not(.incorrect-cell) {
+  background-color: #B0B0B0;
+}
+
+.correct-cell {
+  background-color: #00FF00 !important;
+}
+
+.incorrect-cell {
+  background-color: #FF4040 !important;
+}
+
+.fly-game {
+  width: 70px;
+  height: 70px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+}
+
+.fly-game img {
+  width: 100%;
+  height: 100%;
+}
+
+.target {
+  width: 30px;
+  height: 30px;
+  background-color: #00FF00;
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+}
+
+@media (max-width: 500px) {
+  .screen {
+      width: 80%;
+      height: 90%;
+      min-width: 300px;
+      min-height: 400px;
+  }
+  .content-container {
+      width: 90%;
+      height: 90%;
+  }
+  .grid {
+      width: 90%;
+      height: 90%;
+      max-width: 280px;
+      max-height: 280px;
+  }
+  .fly-game {
+      width: 50px;
+      height: 50px;
+  }
+  .target {
+      width: 20px;
+      height: 20px;
+  }
+}
+
+.fly-logo {
+  width: 100px;
+  height: 100px;
+  margin-bottom: 20px;
+}
+
+.fly-logo img {
+  width: 100%;
+  height: 100%;
+  animation: flyMove 2s infinite ease-in-out, flyRotate 0.5s infinite alternate ease-in-out;
+}
+
+@keyframes flyMove {
+  0%,
+  100% {
+      transform: translateY(0);
+  }
+  50% {
+      transform: translateY(-10px);
+  }
+}
+
+@keyframes flyRotate {
+  0% {
+      transform: rotate(-5deg);
+  }
+  100% {
+      transform: rotate(5deg);
+  }
+}
+
+@media (max-width: 500px) {
+  .fly-logo {
+      width: 70px;
+      height: 70px;
+  }
+} */

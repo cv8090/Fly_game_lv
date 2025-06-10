@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fly 2.0</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div id="scorm-welcome-screen">
+        <h1>Welcome to the SCORM Module</h1>
+        <button id="complete-module">Complete Module</button>
+        <h2>SCORM Game</h2>
+        <button id="start-game">Start Game</button>
+        <div class="score-section">
+            <span>Score:</span>
+            <input type="number" id="score-input" min="1" max="1000" step="1" value="0">
+            <button id="submit-score">Submit Score</button>
+        </div>
+        <button id="get-game-state">Get Game State</button>
+    </div>
+    <div class="language-toggle">
+        <button id="language-ru">RU</button>
+        <button id="language-en">EN</button>
+    </div>
+
+    <div class="standalone-menu">
+        <button id="menu-button-standalone">☰</button>
+    </div>
+
+    <div id="home-screen" class="screen">
+        <h1 id="title">Муха 2.0</h1>
+        <div class="content-container">
+            <div class="fly-logo">
+                <!-- <img src="fly3.png" alt="Fly Logo"> -->
+            </div>
+            <button id="play-button">Играть</button>
+            <button id="settings-button">Настройки</button>
+            <button id="exit-button">Выход</button>
+        </div>
+    </div>
+
+    <div id="difficulty-screen" class="screen" style="display: none;">
+        <h2 id="choose-difficulty" class="difficulty-title">Выберите сложность</h2>
+        <br>
+        <div class="content-container">
+            <button id="easy-button">Легко</button>
+            <button id="normal-button">Нормально</button>
+            <button id="hard-button">Сложно</button>
+            <button id="difficulty-settings-button">Сложность</button>
+        </div>
+    </div>
+
+    <div id="general-settings-screen" class="screen" style="display: none;">
+        <h2 id="general-settings-title" class="difficulty-title">Настройки</h2>
+        <div class="content-container">
+            <div class="setting">
+                <label id="volume-label">Громкость:</label>
+                <div class="setting-controls">
+                    <input type="range" id="volume-value" min="0" max="100" step="1" value="50">
+                    <span id="volume-display">50%</span>
+                </div>
+            </div>
+            <div class="setting">
+                <label id="voice-label">Голос:</label>
+                <div class="setting-controls">
+                    <button class="decrease"><</button>
+                    <span id="voice-value">Мужчина</span>
+                    <button class="increase">></button>
+                </div>
+            </div>
+            <div class="setting">
+                <label id="character-label">Персонаж:</label>
+                <div class="setting-controls">
+                    <button class="decrease"><</button>
+                    <span id="character-value">Муха</span>
+                    <button class="increase">></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="custom-settings-screen" class="screen" style="display: none;">
+        <h2 id="settings-title" class="difficulty-title">Сложность</h2>
+        <div class="content-container">
+            <div class="setting">
+                <label id="speed-label">Скорость мухи:</label>
+                <div class="setting-controls">
+                    <input type="range" id="speed-value" min="0.25" max="4" step="0.1" value="1">
+                    <span id="speed-display">x1</span>
+                </div>
+            </div>
+            <div class="setting">
+                <label id="steps-label">Кол-во шагов:</label>
+                <div class="setting-controls">
+                    <button class="decrease"><</button>
+                    <span id="steps-value">8</span>
+                    <button class="increase">></button>
+                </div>
+            </div>
+            <div class="setting">
+                <label id="grid-size-label">Размер поля:</label>
+                <div class="setting-controls">
+                    <button class="decrease"><</button>
+                    <span id="grid-size-value">3×3</span>
+                    <button class="increase">></button>
+                </div>
+            </div>
+            <button id="start-settings-button" style="position: absolute; top: 216px; left: -226px;">Начать</button>
+        </div>
+    </div>
+
+
+    <!-- <div id="game-screen" class="screen" style="display: none;">
+        <div class="content-container">
+            <h2 id="result-message" style="display: none;"></h2>
+            <div id="grid" class="grid"></div>
+        </div>
+        <button id="restart-button" style="display: none;">Рестарт</button>
+    </div> -->
+    <div id="game-screen" class="screen" style="display: none;">
+        <div class="content-container">
+            <div id="grid" class="grid"></div>
+        </div>
+    </div>
+
+    <div class="game-controls">
+        <div class="move-info">
+            <h2 id="current-move" style="display: none;">Муха ждет</h2>
+            <h2 id="result-message" style="display: none;"></h2>
+            <button id="start-game-button" style="display: none;">Начать</button>
+            <button id="restart-button" style="display: none;">Рестарт</button>
+        </div>
+    </div>
+
+
+    <div class="menu-toggle">
+        <div class="icons-container">
+            <button id="menu-button">☰</button>
+            <button id="sound-button">🔊</button>
+            <button id="rules-button">❓</button>
+        </div>
+        <h2 id="moves-left" style="display: none;">Осталось ходов: 8</h2>
+    </div>
+
+    <div id="rules-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span id="close-rules" class="close">×</span>
+            <h2 id="rules-title">Правила</h2>
+            <div class="rules-navigation">
+                <button id="rules-prev"><</button>
+                <button id="rules-next">></button>
+            </div>
+            <p id="rules-text-1">Перед вами — виртуальное поле, по которому перемещается муха. Ваша задача — внимательно следить за её передвижениями и точно указать её конечную позицию после всех ходов.</p>
+            <p id="rules-text-2">В начале игры вы увидите стартовое положение мухи, но как только ходы начнутся, поле станет пустым. Вы будете слышать голосовые команды, указывающие направление движения мухи.</p>
+            <p id="rules-text-3">Ваша цель — мысленно отслеживать её путь и после завершения ходов кликнуть на ту клетку, где, по вашему мнению, она остановилась. Сможете ли вы удержать муху в поле внимания? Удачи!</p>
+        </div>
+    </div>
+
+
+    <!-- <div class="game-controls">
+        <div class="move-info">
+            <h2 id="current-move" style="display: none;">Муха ждет</h2>
+            <button id="start-game-button" style="display: none;">Начать</button>
+        </div>
+    </div> -->
+
+    <script src="script.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,157 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>SCORM Module</title>
+</head>
+<body>
+  <h1>Welcome to the SCORM Module</h1>
+  <button onclick="sendScore()">Complete Module</button>
+  <script src="../js/scorm_api.js"></script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SCORM Game</title>
+  <script>
+    async function startGame() {
+      const res = await fetch('/play?steps=10', { method: 'POST' });
+      const data = await res.json();
+      document.getElementById("output").textContent = JSON.stringify(data, null, 2);
+    }
+
+    async function submitScore() {
+      const score = parseInt(document.getElementById("scoreInput").value);
+      const formData = new FormData();
+      formData.append("score", score);
+
+      const res = await fetch('/score', {
+        method: 'POST',
+        body: formData
+      });
+
+      const data = await res.json();
+      alert(`Score updated: ${data.score}`);
+    }
+
+    async function getState() {
+      const res = await fetch('/game/state');
+      const data = await res.json();
+      document.getElementById("output").textContent = JSON.stringify(data, null, 2);
+    }
+  </script>
+</head>
+<body>
+  <h1>SCORM Game</h1>
+
+  <button onclick="startGame()">Start Game</button>
+  <br><br>
+
+  <label for="scoreInput">Score:</label>
+  <input type="number" id="scoreInput" value="0" />
+  <button onclick="submitScore()">Submit Score</button>
+  <br><br>
+
+  <button onclick="getState()">Get Game State</button>
+  <pre id="output" style="background:#eee;padding:10px;"></pre>
+</body>
+</html> aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa -->
+ <!-- <!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Fly 2.0</title>
+    <link rel="stylesheet" href="../../style/styles.css">
+</head>
+
+<body>
+   
+    <div class="language-toggle">
+        <button id="language-toggle">RU / EN</button>
+    </div>
+
+  
+    <div class="menu-toggle">
+        <button id="menu-button">☰</button>
+    </div>
+
+   
+    <div id="home-screen" class="screen">
+
+        <div class="content-container">
+            <div class="fly-logo">
+                <img src="fly3.png" alt="Fly Logo">
+            </div>
+            <h1 id="title">Муха 2.0</h1>
+            <button id="play-button">Играть</button>
+            <button id="settings-button">Настройки</button>
+            <button id="exit-button">Выход</button>
+        </div>
+    </div>
+
+
+    <div id="difficulty-screen" class="screen" style="display: none;">
+        <div class="content-container">
+            <h2 id="choose-difficulty">Выберите сложность</h2>
+            <button id="easy-button">Легко</button>
+            <button id="normal-button">Нормально</button>
+            <button id="hard-button">Сложно</button>
+            <button id="customize-button">Настроить</button>
+        </div>
+    </div>
+
+
+    <div id="custom-settings-screen" class="screen" style="display: none;">
+        <div class="content-container">
+            <h2 id="settings-title">Настройки</h2>
+            <div class="setting">
+                <label id="simplicity-label">Простота:</label>
+                <div class="setting-controls">
+                    <button class="decrease">-</button>
+                    <span id="simplicity-value">5</span>
+                    <button class="increase">+</button>
+                </div>
+            </div>
+            <div class="setting">
+                <label id="moves-label">Числа:</label>
+                <div class="setting-controls">
+                    <button class="decrease">-</button>
+                    <span id="moves-value">8</span>
+                    <button class="increase">+</button>
+                </div>
+            </div>
+            <div class="setting">
+                <label id="speed-label">Скорость мухи:</label>
+                <div class="setting-controls">
+                    <button class="decrease">-</button>
+                    <span id="speed-value">1.0</span>
+                    <button class="increase">+</button>
+                </div>
+            </div>
+            <button id="apply-settings-button">Применить</button>
+        </div>
+    </div>
+
+
+    <div id="game-screen" class="screen" style="display: none;">
+        <div class="sound-toggle">
+            <button id="sound-button">🔊</button>
+        </div>
+        <div class="content-container">
+            <h2 id="moves-left">Осталось ходов: 8</h2>
+            <p id="current-move" style="display: none;">Текущий ход:</p>
+            <h2 id="result-message" style="display: none;"></h2>
+            <button id="start-game-button" style="display: block;">Начать</button>
+            <div id="grid" class="grid"></div>
+        </div>
+        <button id="restart-button" style="display: none;">Рестарт</button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html> -->

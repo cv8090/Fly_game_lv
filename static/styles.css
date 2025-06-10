@@ -1,0 +1,822 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: "Open Sans", sans-serif;
+    background: #FFFFFF;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #000;
+}
+
+.screen {
+    background-color: #D3D3D3;
+    border: 2px solid #FFFFFF;
+    border-radius: 0px;
+    padding: 20px;
+    text-align: center;
+    width: 50%;
+    height: 100%;
+    max-width: 500px;
+    max-height: 600px;
+    min-width: 350px;
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    -webkit-border-radius: 0px;
+    -moz-border-radius: 0px;
+    -ms-border-radius: 0px;
+    -o-border-radius: 0px;
+    position: relative;
+}
+
+.difficulty-title {
+    position: absolute;
+    top: 110px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 1.5rem;
+    color: #000;
+    background: none;
+    padding: 0;
+    margin: 0;
+}
+
+.content-container {
+    background-color: #FFFFFF;
+    border-radius: 10px;
+    padding: 20px;
+    width: 80%;
+    height: 80%;
+    max-width: 400px;
+    max-height: 356px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin: 150px auto 150px auto;
+    margin-left: 40px;
+}
+
+.language-toggle {
+    position: absolute;
+    top: 115px;
+    left: 85px;
+    display: flex;
+    gap: 10px;
+}
+
+#language-ru,
+#language-en {
+    background-color: transparent;
+    color: #000;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+#language-ru.active,
+#language-en.active {
+    border: 2px solid #000;
+}
+
+#language-ru:hover,
+#language-en:hover {
+    background-color: #F0F0F0;
+}
+
+#language-ru:active,
+#language-en:active {
+    background-color: #E0E0E0;
+}
+
+.menu-toggle {
+    position: absolute;
+    top: 150px;
+    right: 130px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+}
+
+.standalone-menu {
+    position: absolute;
+    top: 125px;
+    right: 230px;
+    display: none;
+}
+
+.icons-container {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+}
+
+#menu-button,
+#sound-button,
+#rules-button,
+#menu-button-standalone {
+    background-color: #D3D3D3;
+    color: #000;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+#menu-button:hover,
+#sound-button:hover,
+#rules-button:hover,
+#menu-button-standalone:hover {
+    background-color: #C0C0C0;
+}
+
+#menu-button:active,
+#sound-button:active,
+#rules-button:active,
+#menu-button-standalone:active {
+    background-color: #A9A9A9;
+}
+
+#moves-left {
+    font-size: 1.5rem;
+    color: #000;
+    margin: 5px 0;
+}
+
+#home-screen h1 {
+    font-size: 2.5rem;
+    margin-bottom: -60px;
+    color: #000;
+}
+
+#home-screen button {
+    background-color: #FFFFFF;
+    color: #000;
+    border: 2px solid #000;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    margin: 10px 0;
+    display: block;
+    width: 200px;
+    margin-left: auto;
+    margin-right: auto;
+    transition: all 0.3s ease;
+    margin-bottom: 25px;
+}
+
+#home-screen button:hover {
+    background-color: #F0F0F0;
+}
+
+#home-screen button:active {
+    background-color: #E0E0E0;
+}
+
+#difficulty-screen button {
+    background-color: #FFFFFF;
+    color: #000;
+    border: 2px solid #000;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    width: 150px;
+    transition: all 0.3s ease;
+}
+
+#difficulty-screen button:hover {
+    background-color: #F0F0F0;
+}
+
+#difficulty-screen button:active {
+    background-color: #E0E0E0;
+}
+
+#general-settings-screen .setting,
+#custom-settings-screen .setting {
+    margin: 15px 0;
+    text-align: left;
+    width: 100%;
+}
+
+#general-settings-screen label,
+#custom-settings-screen label {
+    display: block;
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+    color: #000;
+}
+
+#general-settings-screen .setting-controls,
+#custom-settings-screen .setting-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
+#general-settings-screen .setting-controls input[type="range"],
+#custom-settings-screen .setting-controls input[type="range"] {
+    width: 100px;
+}
+
+#general-settings-screen .setting-controls span,
+#custom-settings-screen .setting-controls span {
+    font-size: 1.2rem;
+    width: 100px;
+    text-align: center;
+    color: #000;
+    background-color: #E0E0E0;
+    padding: 5px;
+    border-radius: 5px;
+}
+
+#general-settings-screen .setting-controls button,
+#custom-settings-screen .setting-controls button {
+    width: 40px;
+    height: 40px;
+    font-size: 1.5rem;
+    padding: 0;
+    background-color: transparent;
+    border: none;
+    color: #000;
+    cursor: pointer;
+}
+
+#general-settings-screen .setting-controls button:hover,
+#custom-settings-screen .setting-controls button:hover {
+    background-color: #F0F0F0;
+}
+
+#general-settings-screen .setting-controls button:active,
+#custom-settings-screen .setting-controls button:active {
+    background-color: #E0E0E0;
+}
+
+#start-settings-button {
+    background-color: #FFFFFF;
+    color: #000;
+    border: 2px solid #000;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    width: 200px;
+    transition: all 0.3s ease;
+}
+
+#start-settings-button:hover {
+    background-color: #F0F0F0;
+}
+
+#start-settings-button:active {
+    background-color: #E0E0E0;
+}
+
+#game-screen h2 {
+    font-size: 1.5rem;
+    margin: 10px 0;
+    color: #000;
+}
+
+#game-screen p {
+    font-size: 1.2rem;
+    margin: 10px 0;
+    color: #000;
+}
+
+#restart-button {
+    position: absolute;
+    bottom: -70px;
+    left: 200px;
+    width: 150px;
+    background-color: #FFFFFF;
+    color: #000;
+    border: 2px solid #000;
+    padding: 10px 20px;
+    border-radius: 5px;
+}
+
+.grid {
+    display: grid;
+    gap: 0;
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    margin: 0;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    position: relative;
+}
+
+.grid-easy {
+    background-image: url('background.png');
+}
+
+.grid-normal {
+    background-image: url('background1.png');
+}
+
+.grid-hard {
+    background-image: url('background2.png');
+}
+
+.cell {
+    position: relative;
+}
+
+.correct-cell {
+    background-color: #04D7003D;
+    animation: greenFlash 1.5s ease-in-out;
+}
+
+@keyframes greenFlash {
+    0% {
+        background-color: #FFFFFF;
+        opacity: 0;
+    }
+    50% {
+        background-color: #04D7003D;
+        opacity: 0.5;
+    }
+    100% {
+        background-color: #04D7003D;
+        opacity: 1;
+    }
+}
+
+.incorrect-cell {
+    background-color: rgba(255, 0, 0, 0.5);
+    top: 5px;
+    left: 5px;
+}
+
+.fly-game {
+    width: 70px;
+    height: 70px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+}
+
+.fly-game img {
+    width: 100%;
+    height: 100%;
+}
+
+
+/* .target {
+    width: 30px;
+    height: 30px;
+    background-color: #00FF00;
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1;
+} */
+
+@media (max-width: 500px) {
+    .screen {
+        width: 80%;
+        height: 90%;
+        min-width: 300px;
+        min-height: 400px;
+    }
+    .content-container {
+        width: 90%;
+        height: 90%;
+        max-height: 356px;
+    }
+    .grid {
+        width: 100%;
+        height: 100%;
+        max-width: 100%;
+        max-height: 100%;
+    }
+    .fly-game {
+        width: 50px;
+        height: 50px;
+    }
+    .target {
+        width: 20px;
+        height: 20px;
+    }
+    .difficulty-title {
+        font-size: 1.2rem;
+    }
+    #difficulty-screen button {
+        width: 120px;
+        font-size: 0.9rem;
+    }
+    #general-settings-screen label,
+    #custom-settings-screen label {
+        font-size: 1rem;
+    }
+    #general-settings-screen .setting-controls span,
+    #custom-settings-screen .setting-controls span {
+        font-size: 1rem;
+        width: 80px;
+    }
+    #general-settings-screen .setting-controls button,
+    #custom-settings-screen .setting-controls button {
+        width: 30px;
+        height: 30px;
+        font-size: 1.2rem;
+    }
+    #start-settings-button {
+        width: 180px;
+    }
+}
+
+.fly-logo {
+    width: 100px;
+    height: 100px;
+    margin-bottom: 20px;
+}
+
+.fly-logo img {
+    width: 100%;
+    height: 100%;
+    animation: flyMove 2s infinite ease-in-out, flyRotate 0.5s infinite alternate ease-in-out;
+}
+
+@keyframes flyMove {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+@keyframes flyRotate {
+    0% {
+        transform: rotate(-5deg);
+    }
+    100% {
+        transform: rotate(5deg);
+    }
+}
+
+@media (max-width: 500px) {
+    .fly-logo {
+        width: 70px;
+        height: 70px;
+    }
+}
+
+#scorm-welcome-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #2c3e50, #3498db);
+    padding: 30px;
+    color: #fff;
+    position: relative;
+    text-align: center;
+    border-radius: 15px;
+    animation: fadeIn 1.5s ease-in-out;
+    border: 2px solid #fff;
+    overflow: hidden;
+}
+
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+#scorm-welcome-screen::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 70%);
+    animation: rotate 10s infinite linear;
+    z-index: 0;
+}
+
+@keyframes rotate {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+#scorm-welcome-screen>* {
+    position: relative;
+    z-index: 1;
+}
+
+h1 {
+    font-size: 3em;
+    margin-bottom: 20px;
+    color: #e74c3c;
+    font-family: "Open Sans", sans-serif;
+}
+
+h2 {
+    font-size: 2.5em;
+    margin-bottom: 30px;
+    font-family: "Open Sans", sans-serif;
+}
+
+button {
+    padding: 10px 20px;
+    margin: 5px;
+    font-size: 1em;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+
+.score-section {
+    display: flex;
+    align-items: center;
+    margin: 20px 0;
+}
+
+#score-input {
+    padding: 5px;
+    margin-right: 10px;
+    width: 60px;
+    text-align: center;
+    background-color: #fff;
+    color: #000;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+}
+
+#submit-score {
+    padding: 5px 15px;
+}
+
+#get-game-state {
+    margin-top: 20px;
+}
+
+#home-screen,
+#difficulty-screen,
+#general-settings-screen,
+#custom-settings-screen,
+#game-screen {
+    display: none;
+}
+
+@media (max-width: 500px) {
+    #scorm-welcome-screen {
+        padding: 10px;
+    }
+    h1 {
+        font-size: 1.8em;
+    }
+    h2 {
+        font-size: 1.5em;
+    }
+    button {
+        padding: 8px 15px;
+        font-size: 0.9em;
+    }
+    #score-input {
+        width: 50px;
+        padding: 3px;
+    }
+}
+
+#scorm-welcome-screen button {
+    padding: 12px 25px;
+    margin: 10px;
+    font-size: 1.2em;
+    background: linear-gradient(45deg, #27ae60, #2ecc71);
+    color: #fff;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    outline: none;
+}
+
+#scorm-welcome-screen button:hover {
+    transform: translateY(-3px);
+    background: linear-gradient(45deg, #2ecc71, #27ae60);
+}
+
+#scorm-welcome-screen button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.score-section {
+    display: flex;
+    align-items: center;
+    margin: 30px 0;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 10px 20px;
+    border-radius: 15px;
+}
+
+.score-section span {
+    font-size: 1.2em;
+    margin-right: 15px;
+    color: #fff;
+}
+
+#score-input {
+    padding: 8px;
+    margin-right: 15px;
+    width: 100px;
+    text-align: center;
+    background: #fff;
+    color: #333;
+    border: 2px solid #2ecc71;
+    border-radius: 10px;
+    font-size: 1.1em;
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+
+#score-input:focus {
+    border-color: #e74c3c;
+    box-shadow: 0 6px 15px rgba(231, 76, 60, 0.4);
+}
+
+#submit-score {
+    padding: 8px 20px;
+}
+
+@media (max-width: 500px) {
+    #scorm-welcome-screen {
+        padding: 15px;
+    }
+    h1 {
+        font-size: 2em;
+    }
+    h2 {
+        font-size: 1.8em;
+    }
+    button {
+        padding: 10px 20px;
+        font-size: 1em;
+    }
+    #score-input {
+        width: 80px;
+        padding: 6px;
+    }
+}
+
+.game-controls {
+    position: absolute;
+    top: 160px;
+    left: 85px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.move-info h2 {
+    font-size: 1.5rem;
+    margin: 5px 0;
+    color: #000;
+    margin-left: 230px;
+}
+
+#start-game-button {
+    background-color: #FFFFFF;
+    color: #000;
+    border: 2px solid #000;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    width: 150px;
+    margin-left: 180px;
+    margin-top: 80px;
+    transition: all 0.3s ease;
+}
+
+#start-game-button:hover {
+    background-color: #F0F0F0;
+}
+
+#start-game-button:active {
+    background-color: #E0E0E0;
+}
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background-color: #FFFFFF;
+    padding: 20px;
+    border-radius: 10px;
+    width: 80%;
+    max-width: 400px;
+    position: relative;
+    text-align: center;
+}
+
+.modal-content h2 {
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+    color: #000;
+}
+
+.modal-content p {
+    font-size: 1rem;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.close {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 1.5rem;
+    color: #000;
+    cursor: pointer;
+}
+
+.close:hover {
+    color: #e74c3c;
+}
+
+.rules-navigation {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+#rules-prev,
+#rules-next {
+    background-color: #D3D3D3;
+    color: #000;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+#rules-prev:hover,
+#rules-next:hover {
+    background-color: #C0C0C0;
+}
+
+#rules-prev:active,
+#rules-next:active {
+    background-color: #A9A9A9;
+}
