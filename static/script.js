@@ -17,7 +17,6 @@ const difficultySettingsButton = document.getElementById('difficulty-settings-bu
 const startSettingsButton = document.getElementById('start-settings-button');
 const startGameButton = document.getElementById('start-game-button');
 const restartButton = document.getElementById('restart-button');
-const soundButton = document.getElementById('sound-button');
 const languageRu = document.getElementById('language-ru');
 const languageEn = document.getElementById('language-en');
 const speedValue = document.getElementById('speed-value');
@@ -41,22 +40,24 @@ const rulesPrev = document.getElementById('rules-prev');
 const rulesNext = document.getElementById('rules-next');
 const menuToggle = document.querySelector('.menu-toggle');
 const standaloneMenu = document.querySelector('.standalone-menu');
-// const helpButton = document.getElementById('help-button');
-const instructionsScreen = document.getElementById('instructions-screen');
-//  const page1 = document.getElementById('page-1');
-//  const page2 = document.getElementById('page-2');
-//  const page3 = document.getElementById('page-3');
+
+// التحقق من وجود عناصر DOM
+if (!homeScreen || !difficultyScreen || !generalSettingsScreen || !gameScreen || !grid) {
+    console.error("One or more DOM elements are missing. Check index.html structure.");
+    alert("Error: Game elements not found. Please check the HTML file.");
+    throw new Error("Missing DOM elements");
+}
 
 let dots = [];
 let flyPosition = { row: 0, col: 0 };
 let targetPosition = { row: 0, col: 0 };
-let expectedFinalPosition = null; // For backend
-let flyRoute = null; // Optional: raw positions from backend
-let flyAudio = null; // Optional: audio URLs from backend
+let expectedFinalPosition = null;
+let flyRoute = null;
+let flyAudio = null;
 let gameState = 'start';
 let totalMoves = 8;
 let currentMoveCount = 0;
-let currentScore = 0; // For backend score tracking
+let currentScore = 0;
 let moveDelay = 1000;
 let soundOn = true;
 let gridSize = 3;
@@ -73,6 +74,7 @@ let voiceOptions = ['Мужчина', 'Женщина'];
 let characterOptions = ['Муха', 'Fly'];
 let gridSizes = ['3×3', '4×4', '5×5'];
 let rulesLanguage = 'ru';
+let availableVoices = [];
 
 const translations = {
     en: {
@@ -109,7 +111,11 @@ const translations = {
         rulesText2: "At the beginning of the game, you will see the fly's starting position, but as soon as the moves start, the field will become empty. You will hear voice commands indicating the direction of the fly's movement.",
         rulesText3: "Your goal is to mentally track its path and, after the moves are completed, click on the cell where you think it stopped. Can you keep the fly in your focus? Good luck!",
         voiceOptions: ['Male', 'Female'],
-        characterOptions: ['Fly', 'Fly']
+        characterOptions: ['Fly', 'Fly'],
+        up: "Up",
+        down: "Down",
+        left: "Left",
+        right: "Right"
     },
     ru: {
         title: "Муха 2.0",
@@ -145,67 +151,111 @@ const translations = {
         rulesText2: "В начале игры вы увидите стартовое положение мухи, но как только ходы начнутся, поле станет пустым. Вы будете слышать голосовые команды, указывающие направление движения мухи.",
         rulesText3: "Ваша цель — мысленно отслеживать её путь и после завершения ходов кликнуть на ту клетку, где, по вашему мнению, она остановилась. Сможете ли вы удержать муху в поле внимания? Удачи!",
         voiceOptions: ['Мужчина', 'Женщина'],
-        characterOptions: ['Муха', 'Муха']
+        characterOptions: ['Муха', 'Муха'],
+        up: "Вверх",
+        down: "Вниз",
+        left: "Влево",
+        right: "Вправо"
     }
 };
 
-document.getElementById('scorm-welcome-screen').style.display = 'block';
-document.getElementById('home-screen').style.display = 'none';
-document.getElementById('difficulty-screen').style.display = 'none';
-document.getElementById('general-settings-screen').style.display = 'none';
-document.getElementById('custom-settings-screen').style.display = 'none';
-document.getElementById('game-screen').style.display = 'none';
-menuToggle.style.display = 'none';
-standaloneMenu.style.display = 'none';
+// إخفاء الشاشات غير الضرورية عند بدء التشغيل
+function initializeScreens() {
+    const scormWelcomeScreen = document.getElementById('scorm-welcome-screen');
+    if (scormWelcomeScreen) scormWelcomeScreen.style.display = 'block';
+    if (homeScreen) homeScreen.style.display = 'none';
+    if (difficultyScreen) difficultyScreen.style.display = 'none';
+    if (generalSettingsScreen) generalSettingsScreen.style.display = 'none';
+    if (customSettingsScreen) customSettingsScreen.style.display = 'none';
+    if (gameScreen) gameScreen.style.display = 'none';
+    if (menuToggle) menuToggle.style.display = 'none';
+    if (standaloneMenu) standaloneMenu.style.display = 'none';
+}
 
-document.getElementById('start-game').addEventListener('click', function() {
-    document.getElementById('scorm-welcome-screen').style.display = 'none';
-    document.getElementById('home-screen').style.display = 'block';
-    menuToggle.style.display = 'none';
-    standaloneMenu.style.display = 'none';
-});
+// تشغيل شاشة البداية
+const startGameBtn = document.getElementById('start-game');
+if (startGameBtn) {
+    startGameBtn.addEventListener('click', function() {
+        const scormWelcomeScreen = document.getElementById('scorm-welcome-screen');
+        if (scormWelcomeScreen) scormWelcomeScreen.style.display = 'none';
+        if (homeScreen) homeScreen.style.display = 'block';
+        if (menuToggle) menuToggle.style.display = 'none';
+        if (standaloneMenu) standaloneMenu.style.display = 'none';
+    });
+}
+
+// تحميل الأصوات مع التعامل مع الأخطاء
+function loadVoices() {
+    try {
+        availableVoices = speechSynthesis.getVoices();
+        console.log("Available voices:", availableVoices.map(v => ({ name: v.name, lang: v.lang })));
+        if (availableVoices.length === 0) {
+            speechSynthesis.onvoiceschanged = () => {
+                availableVoices = speechSynthesis.getVoices();
+                console.log("Voices loaded after change:", availableVoices.map(v => ({ name: v.name, lang: v.lang })));
+            };
+        }
+    } catch (error) {
+        console.error("Error loading voices:", error);
+    }
+}
 
 function setLanguage(lang) {
     currentLanguage = lang;
     updateLanguage();
     localStorage.setItem('flyGameLanguage', currentLanguage);
-    languageRu.classList.toggle('active', lang === 'ru');
-    languageEn.classList.toggle('active', lang === 'en');
+    if (languageRu) languageRu.classList.toggle('active', lang === 'ru');
+    if (languageEn) languageEn.classList.toggle('active', lang === 'en');
 }
 
 function updateLanguage() {
     const t = translations[currentLanguage];
-    document.getElementById('title').textContent = t.title;
-    playButton.textContent = t.play;
-    settingsButton.textContent = t.settings;
-    exitButton.textContent = t.exit;
-    document.getElementById('choose-difficulty').textContent = t.chooseDifficulty;
-    easyButton.textContent = t.easy;
-    normalButton.textContent = t.normal;
-    hardButton.textContent = t.hard;
-    difficultySettingsButton.textContent = t.difficultySettings;
-    document.getElementById('general-settings-title').textContent = t.settingsTitle;
-    document.getElementById('volume-label').textContent = t.volume;
-    document.getElementById('voice-label').textContent = t.voice;
-    document.getElementById('character-label').textContent = t.character;
-    document.getElementById('speed-label').textContent = t.speed;
-    document.getElementById('steps-label').textContent = t.steps;
-    document.getElementById('grid-size-label').textContent = t.gridSize;
-    startSettingsButton.textContent = t.start;
-    movesLeft.textContent = `${t.movesLeft}${totalMoves - currentMoveCount}`;
-    currentMove.textContent = t.flyWaiting;
-    startGameButton.textContent = t.startGame;
-    restartButton.textContent = t.restart;
-    soundButton.textContent = soundOn ? t.soundOn : t.soundOff;
-    resultMessage.textContent = '';
+    if (!t) {
+        console.error(`Translation for language ${currentLanguage} not found`);
+        return;
+    }
 
-    // Update voice and character options based on current language
+    if (document.getElementById('title')) document.getElementById('title').textContent = t.title;
+    if (playButton) playButton.textContent = t.play;
+    if (settingsButton) settingsButton.textContent = t.settings;
+    if (exitButton) exitButton.textContent = t.exit;
+    if (document.getElementById('choose-difficulty')) document.getElementById('choose-difficulty').textContent = t.chooseDifficulty;
+    if (easyButton) easyButton.textContent = t.easy;
+    if (normalButton) normalButton.textContent = t.normal;
+    if (hardButton) hardButton.textContent = t.hard;
+    if (difficultySettingsButton) difficultySettingsButton.textContent = t.difficultySettings;
+    if (document.getElementById('general-settings-title')) document.getElementById('general-settings-title').textContent = t.settingsTitle;
+    if (document.getElementById('volume-label')) document.getElementById('volume-label').textContent = t.volume;
+    if (document.getElementById('voice-label')) document.getElementById('voice-label').textContent = t.voice;
+    if (document.getElementById('character-label')) document.getElementById('character-label').textContent = t.character;
+    if (document.getElementById('speed-label')) document.getElementById('speed-label').textContent = t.speed;
+    if (document.getElementById('steps-label')) document.getElementById('steps-label').textContent = t.steps;
+    if (document.getElementById('grid-size-label')) document.getElementById('grid-size-label').textContent = t.gridSize;
+    if (startSettingsButton) startSettingsButton.textContent = t.start;
+    if (movesLeft) movesLeft.textContent = `${t.movesLeft}${totalMoves - currentMoveCount}`;
+    if (currentMove) currentMove.textContent = t.flyWaiting;
+    if (startGameButton) startGameButton.textContent = t.startGame;
+    if (restartButton) restartButton.textContent = t.restart;
+    if (resultMessage) resultMessage.textContent = '';
+
     voiceOptions = t.voiceOptions;
     characterOptions = t.characterOptions;
-    voiceValue.textContent = voiceOptions[voiceOptions.indexOf(voiceGender) !== -1 ? voiceOptions.indexOf(voiceGender) : 0];
-    characterValue.textContent = characterOptions[characterOptions.indexOf(character) !== -1 ? characterOptions.indexOf(character) : 0];
-    voiceGender = voiceValue.textContent;
-    character = characterValue.textContent;
+
+    // تحويل voiceGender لتتوافق مع اللغة
+    if (currentLanguage === 'ru') {
+        voiceGender = voiceGender === 'Male' ? 'Мужчина' : voiceGender === 'Female' ? 'Женщина' : voiceGender;
+    } else {
+        voiceGender = voiceGender === 'Мужчина' ? 'Male' : voiceGender === 'Женщина' ? 'Female' : voiceGender;
+    }
+
+    if (voiceValue) {
+        voiceValue.textContent = voiceOptions[voiceOptions.indexOf(voiceGender) !== -1 ? voiceOptions.indexOf(voiceGender) : 0];
+        voiceGender = voiceValue.textContent;
+    }
+    if (characterValue) {
+        characterValue.textContent = characterOptions[characterOptions.indexOf(character) !== -1 ? characterOptions.indexOf(character) : 0];
+        character = characterValue.textContent;
+    }
 
     updateRulesLanguage(rulesLanguage);
 }
@@ -220,6 +270,10 @@ function setRandomTargetPosition() {
 }
 
 function createGrid(size, difficultyLevel) {
+    if (!grid) {
+        console.error("Grid element not found");
+        return;
+    }
     grid.innerHTML = '';
     dots = [];
     grid.className = 'grid';
@@ -257,17 +311,19 @@ function updateTarget() {
     });
 
     const targetCell = dots[targetPosition.row * gridSize + targetPosition.col];
-    const existingContent = targetCell.innerHTML.includes('fly-game') ? targetCell.innerHTML : '';
-    targetCell.innerHTML = '<div class="target"></div>' + existingContent;
+    if (targetCell) {
+        const existingContent = targetCell.innerHTML.includes('fly-game') ? targetCell.innerHTML : '';
+        targetCell.innerHTML = '<div class="target"></div>' + existingContent;
+    }
 }
 
 function updateFly() {
     dots.forEach(cell => {
-        cell.classList.remove('fly', 'correct-cell', 'incorrect-cell');
+        cell.classList.remove('fly');
         const isFlyCell = cell.dataset.row == flyPosition.row && cell.dataset.col == flyPosition.col;
         const isTargetCell = cell.dataset.row == targetPosition.row && cell.dataset.col == targetPosition.col;
         if (isFlyCell && flyVisible) {
-            const flyHTML = `<div class="fly-game"><img src="fly2.png" alt="Fly"></div>`;
+            const flyHTML = `<div class="fly-game"><img id="fly_image" src="fly2.png" alt="Fly"></div>`;
             const existingContent = cell.innerHTML.includes('target') ? cell.innerHTML : '';
             cell.innerHTML = flyHTML + existingContent;
             cell.classList.add('fly');
@@ -280,211 +336,229 @@ function updateFly() {
 async function calculateRandomPath() {
     try {
         const steps = totalMoves;
-        const response = await fetch(`http://localhost:8000/fly_route/?steps=${steps}`);
-        const data = await response.json();
+        moveQueue = [];
+        let currentPosition = { row: Math.floor(gridSize / 2), col: Math.floor(gridSize / 2) };
+        flyPosition = {...currentPosition };
+        let movesGenerated = 0;
 
-        moveQueue = data.directions.map(dir => dir.toLowerCase());
-        flyPosition = {
-            row: data.initial_position[0],
-            col: data.initial_position[1]
-        };
-        expectedFinalPosition = {
-            row: data.final_position[0],
-            col: data.final_position[1]
-        };
+        while (movesGenerated < steps) {
+            const directions = ['up', 'down', 'left', 'right'];
+            let randomMove = directions[Math.floor(Math.random() * directions.length)];
+            let tempPosition = {...currentPosition };
+            let moveValid = true;
+
+            switch (randomMove) {
+                case 'up':
+                    moveValid = tempPosition.row > 0;
+                    if (moveValid) tempPosition.row--;
+                    break;
+                case 'down':
+                    moveValid = tempPosition.row < gridSize - 1;
+                    if (moveValid) tempPosition.row++;
+                    break;
+                case 'left':
+                    moveValid = tempPosition.col > 0;
+                    if (moveValid) tempPosition.col--;
+                    break;
+                case 'right':
+                    moveValid = tempPosition.col < gridSize - 1;
+                    if (moveValid) tempPosition.col++;
+                    break;
+            }
+
+            if (moveValid) {
+                moveQueue.push(randomMove);
+                currentPosition = {...tempPosition };
+                movesGenerated++;
+            }
+        }
+
+        expectedFinalPosition = {...currentPosition };
+        console.log("Move queue:", moveQueue);
+        console.log("Initial position:", flyPosition);
+        console.log("Expected final position:", expectedFinalPosition);
 
         currentMoveCount = 0;
-        flyVisible = true;
+        flyVisible = false;
         gameState = 'playing';
         isMoving = true;
 
         updateFly();
         executeNextMove();
     } catch (error) {
-        console.error("Error fetching path:", error);
-        alert("Error fetching path from server. Check console for details.");
+        console.error("Error generating path:", error);
+        alert("Error generating path. Check console for details.");
+        isMoving = false;
+        gameState = 'start';
     }
 }
 
 function executeNextMove() {
-    if (moveQueue.length === 0) {
+    if (moveQueue.length === 0 || currentMoveCount >= totalMoves) {
+        console.log("All moves completed, final flyPosition:", flyPosition, "expected:", expectedFinalPosition);
+        flyPosition = {...expectedFinalPosition };
         flyVisible = false;
         updateFly();
         isMoving = false;
-        // startGameButton.style.display = 'block';
-        currentMove.style.display = 'block';
-        currentMove.textContent = translations[currentLanguage].whereIsFly;
+        gameState = 'waiting';
+        if (currentMove) currentMove.style.display = 'block';
+        if (currentMove) currentMove.textContent = translations[currentLanguage].whereIsFly;
+        speechSynthesis.cancel();
+        if (startGameButton) startGameButton.style.display = 'none';
+        if (restartButton) restartButton.style.display = 'block';
+        if (movesLeft) movesLeft.textContent = `${translations[currentLanguage].movesLeft}0`;
         return;
     }
 
     const nextMove = moveQueue.shift();
-    const prevPosition = {...flyPosition };
+    console.log("Executing move:", nextMove, "Remaining moves:", moveQueue.length, "Current position:", flyPosition);
+    let moveValid = true;
 
     switch (nextMove) {
         case 'up':
-            if (flyPosition.row > 0) flyPosition.row--;
+            if (flyPosition.row > 0) {
+                flyPosition.row--;
+                expectedFinalPosition.row = flyPosition.row;
+            } else {
+                moveValid = false;
+            }
             break;
         case 'down':
-            if (flyPosition.row < gridSize - 1) flyPosition.row++;
+            if (flyPosition.row < gridSize - 1) {
+                flyPosition.row++;
+                expectedFinalPosition.row = flyPosition.row;
+            } else {
+                moveValid = false;
+            }
             break;
         case 'left':
-            if (flyPosition.col > 0) flyPosition.col--;
+            if (flyPosition.col > 0) {
+                flyPosition.col--;
+                expectedFinalPosition.col = flyPosition.col;
+            } else {
+                moveValid = false;
+            }
             break;
         case 'right':
-            if (flyPosition.col < gridSize - 1) flyPosition.col++;
+            if (flyPosition.col < gridSize - 1) {
+                flyPosition.col++;
+                expectedFinalPosition.col = flyPosition.col;
+            } else {
+                moveValid = false;
+            }
             break;
     }
 
-    currentMoveCount++;
-    movesLeft.textContent = `${translations[currentLanguage].movesLeft}${totalMoves - currentMoveCount}`;
-    if (!soundOn) currentMove.style.display = 'block';
+    if (moveValid) {
+        currentMoveCount++;
+        console.log("Current move count:", currentMoveCount, "New position:", flyPosition, "Expected:", expectedFinalPosition);
+        if (movesLeft) movesLeft.textContent = `${translations[currentLanguage].movesLeft}${totalMoves - currentMoveCount}`;
+        if (!soundOn && currentMove) currentMove.style.display = 'block';
+        updateFly();
 
-    updateFly();
-    setTimeout(executeNextMove, moveDelay);
+        if (soundOn) {
+            const utterance = new SpeechSynthesisUtterance(translations[currentLanguage][nextMove]);
+            utterance.lang = currentLanguage === 'ru' ? 'ru-RU' : 'en-US';
+            utterance.volume = Math.min(1.0, volumeLevel / 50);
 
+            let selectedVoice = null;
+            if (currentLanguage === 'ru') {
+                selectedVoice = availableVoices.find(voice =>
+                    voice.lang === 'ru-RU' &&
+                    (voiceGender === 'Мужчина' ?
+                        voice.name.match(/male|pavel|google русский|yandex male/i) :
+                        voice.name.match(/female|irina|google русская|yandex female/i)
+                    )
+                );
+            } else {
+                selectedVoice = availableVoices.find(voice =>
+                    voice.lang === 'en-US' &&
+                    (voiceGender === 'Male' ?
+                        voice.name.match(/male|david|mark|google us english/i) :
+                        voice.name.match(/female|zira|jenny|google us english female/i)
+                    )
+                );
+            }
+
+            if (!selectedVoice) {
+                selectedVoice = availableVoices.find(voice => voice.lang === (currentLanguage === 'ru' ? 'ru-RU' : 'en-US')) || availableVoices[0];
+                console.warn(`No matching voice for ${voiceGender} in ${currentLanguage}. Using fallback: ${selectedVoice ? selectedVoice.name : 'none'}`);
+            }
+
+            if (selectedVoice) {
+                utterance.voice = selectedVoice;
+                console.log(`Selected voice: ${selectedVoice.name} (${selectedVoice.lang})`);
+            }
+
+            utterance.onend = () => setTimeout(executeNextMove, moveDelay);
+            utterance.onerror = (event) => {
+                console.error("Speech error:", event.error);
+                setTimeout(executeNextMove, moveDelay);
+            };
+            speechSynthesis.speak(utterance);
+        } else {
+            setTimeout(executeNextMove, moveDelay);
+        }
+    } else {
+        console.log("Invalid move skipped:", nextMove, "Keeping position:", flyPosition);
+        executeNextMove();
+    }
 }
 
 function moveStepByStep() {
-    if (isMoving || gameState !== 'start') {
-        console.log('moveStepByStep blocked: gameState=', gameState, 'isMoving=', isMoving);
-        return;
-    }
-
-    console.log('moveStepByStep called');
+    if (isMoving || gameState !== 'start') return;
     isMoving = true;
-    startGameButton.style.display = 'none';
-    currentMove.textContent = translations[currentLanguage].whereIsFly;
-    currentMove.style.display = 'block';
+    if (startGameButton) startGameButton.style.display = 'none';
+    if (currentMove) currentMove.textContent = translations[currentLanguage].whereIsFly;
+    if (currentMove) currentMove.style.display = 'block';
     gameState = 'playing';
     calculateRandomPath();
-
-
-
-
-    // function executeNextMove() {
-    //     if (moveQueue.length === 0) {
-    //         flyVisible = false;
-    //         updateFly();
-    //         isMoving = false;
-    //         startGameButton.style.display = 'block';
-    //         currentMove.textContent = translations[currentLanguage].flyWaiting;
-    //         return;
-    //     }
-
-    //     const nextMove = moveQueue.shift();
-    //     const prevPosition = {...flyPosition };
-
-    //     switch (nextMove) {
-    //         case 'up':
-    //             if (flyPosition.row > 0) flyPosition.row--;
-    //             break;
-    //         case 'down':
-    //             if (flyPosition.row < gridSize - 1) flyPosition.row++;
-    //             break;
-    //         case 'left':
-    //             if (flyPosition.col > 0) flyPosition.col--;
-    //             break;
-    //         case 'right':
-    //             if (flyPosition.col < gridSize - 1) flyPosition.col++;
-    //             break;
-    //     }
-
-    //     currentMoveCount++;
-    //     movesLeft.textContent = `${translations[currentLanguage].movesLeft}${totalMoves - currentMoveCount}`;
-    //     if (!soundOn) currentMove.style.display = 'block';
-
-    //     updateFly();
-    //     setTimeout(executeNextMove, moveDelay);
-
-    // }
-    executeNextMove();
-}
-
-function checkTarget() {
-    flyVisible = true;
-    updateFly();
-
-    const flyCell = dots[flyPosition.row * gridSize + flyPosition.col];
-    const t = translations[currentLanguage];
-
-    if (
-        flyPosition.row === expectedFinalPosition.row &&
-        flyPosition.col === expectedFinalPosition.col
-    ) {
-        flyCell.classList.add('correct-cell');
-        resultMessage.textContent = t.correct;
-
-        currentScore += 10;
-
-        fetch('http://127.0.0.1:8000/score', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams({ score: currentScore })
-        });
-
-        setRandomTargetPosition();
-        updateTarget();
-    } else {
-        flyCell.classList.add('incorrect-cell');
-        resultMessage.textContent = t.incorrect;
-        totalMoves--;
-        movesLeft.textContent = `${t.movesLeft}${totalMoves}`;
-    }
-
-    resultMessage.style.display = 'block';
-    restartButton.style.display = 'block';
-    startGameButton.style.display = 'block';
-    currentMove.textContent = translations[currentLanguage].flyWaiting;
-
-    if (totalMoves <= 0) {
-        gameState = 'ended';
-    }
 }
 
 function handleCellClick(event) {
-    if (gameState !== 'playing' || isMoving) return;
+    if (gameState !== 'waiting' || isMoving) return;
 
     const clickedRow = parseInt(event.target.dataset.row);
     const clickedCol = parseInt(event.target.dataset.col);
     const t = translations[currentLanguage];
 
+    dots.forEach(cell => cell.classList.remove('correct-cell', 'incorrect-cell'));
+
     if (clickedRow === expectedFinalPosition.row && clickedCol === expectedFinalPosition.col) {
         event.target.classList.add('correct-cell');
-        resultMessage.textContent = t.correct;
-
+        flyPosition = {...expectedFinalPosition };
+        flyVisible = true;
+        if (resultMessage) resultMessage.textContent = t.correct;
         currentScore += 10;
 
         fetch('http://127.0.0.1:8000/score', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: new URLSearchParams({ score: currentScore })
-        });
+        }).catch(error => console.error("Error sending score:", error));
 
         setRandomTargetPosition();
         updateTarget();
     } else {
         event.target.classList.add('incorrect-cell');
-        resultMessage.textContent = t.incorrect;
+        const correctCell = dots[expectedFinalPosition.row * gridSize + expectedFinalPosition.col];
+        if (correctCell) correctCell.classList.add('correct-cell');
+        flyPosition = {...expectedFinalPosition };
+        flyVisible = true;
+        if (resultMessage) resultMessage.textContent = t.incorrect;
         totalMoves--;
-        movesLeft.textContent = `${t.movesLeft}${totalMoves}`;
+        if (movesLeft) movesLeft.textContent = `${t.movesLeft}${totalMoves}`;
     }
 
-    resultMessage.style.display = 'block';
-    restartButton.style.display = 'block';
-    startGameButton.style.display = 'none';
-    currentMove.style.display = 'none';
-    // currentMove.textContent = translations[currentLanguage].flyWaiting;
+    updateFly();
+    if (resultMessage) resultMessage.style.display = 'block';
+    if (restartButton) restartButton.style.display = 'block';
+    if (startGameButton) startGameButton.style.display = 'none';
+    if (currentMove) currentMove.textContent = t.flyWaiting;
 
     if (totalMoves <= 0) {
         gameState = 'ended';
     }
-}
-
-function toggleSound() {
-    soundOn = !soundOn;
-    const t = translations[currentLanguage];
-    soundButton.textContent = soundOn ? t.soundOn : t.soundOff;
-    localStorage.setItem('flyGameSound', soundOn);
 }
 
 async function startGame(difficultyLevel) {
@@ -510,24 +584,94 @@ async function startGame(difficultyLevel) {
         isMoving = false;
         moveQueue = [];
 
-        createGrid(gridSize, difficultyLevel);
-        movesLeft.textContent = `${translations[currentLanguage].movesLeft}${totalMoves}`;
-        currentMove.textContent = translations[currentLanguage].flyWaiting;
-        currentMove.style.display = 'block';
-        movesLeft.style.display = 'block';
-        startGameButton.style.display = 'block';
-        resultMessage.style.display = 'none';
-        restartButton.style.display = 'none';
-        menuToggle.style.display = 'flex';
-        standaloneMenu.style.display = 'none';
+        switch (difficultyLevel) {
+            case 'easy':
+                gridSize = 3;
+                totalMoves = Math.min(totalMoves, 100);
+                break;
+            case 'normal':
+                gridSize = 4;
+                totalMoves = Math.min(totalMoves, 100);
+                break;
+            case 'hard':
+                gridSize = 5;
+                totalMoves = Math.min(totalMoves, 100);
+                break;
+        }
 
-        difficultyScreen.style.display = 'none';
-        generalSettingsScreen.style.display = 'none';
-        customSettingsScreen.style.display = 'none';
-        gameScreen.style.display = 'block';
+        createGrid(gridSize, difficultyLevel);
+        if (movesLeft) movesLeft.textContent = `${translations[currentLanguage].movesLeft}${totalMoves}`;
+        if (currentMove) currentMove.textContent = translations[currentLanguage].flyWaiting;
+        if (currentMove) currentMove.style.display = 'block';
+        if (movesLeft) movesLeft.style.display = 'block';
+        if (startGameButton) startGameButton.style.display = 'block';
+        if (resultMessage) resultMessage.style.display = 'none';
+        if (restartButton) restartButton.style.display = 'none';
+        if (menuToggle) menuToggle.style.display = 'flex';
+        if (standaloneMenu) standaloneMenu.style.display = 'none';
+
+        if (difficultyScreen) difficultyScreen.style.display = 'none';
+        if (generalSettingsScreen) generalSettingsScreen.style.display = 'none';
+        if (customSettingsScreen) customSettingsScreen.style.display = 'none';
+        if (gameScreen) gameScreen.style.display = 'block';
     } catch (error) {
         console.error("Error starting game:", error);
         alert("Error starting game. Check console for details.");
+    }
+}
+
+function speak(text) {
+    if (!soundOn || !window.speechSynthesis) {
+        console.warn("Sound is off or speechSynthesis not supported");
+        return;
+    }
+
+    const t = translations[currentLanguage];
+    const translatedText = t[text] || text;
+    const utterance = new SpeechSynthesisUtterance(translatedText);
+    utterance.lang = currentLanguage === 'ru' ? 'ru-RU' : 'en-US';
+    utterance.volume = Math.min(1.0, volumeLevel / 50);
+
+    try {
+        if (!availableVoices.length) {
+            console.warn("No voices available, attempting to reload");
+            loadVoices();
+            return;
+        }
+
+        let selectedVoice = null;
+        if (currentLanguage === 'ru') {
+            selectedVoice = availableVoices.find(voice =>
+                voice.lang === 'ru-RU' &&
+                (voiceGender === 'Мужчина' ?
+                    voice.name.match(/male|pavel|google русский|yandex male/i) :
+                    voice.name.match(/female|irina|google русская|yandex female/i)
+                )
+            );
+        } else {
+            selectedVoice = availableVoices.find(voice =>
+                voice.lang === 'en-US' &&
+                (voiceGender === 'Male' ?
+                    voice.name.match(/male|david|mark|google us english/i) :
+                    voice.name.match(/female|zira|jenny|google us english female/i)
+                )
+            );
+        }
+
+        if (!selectedVoice) {
+            selectedVoice = availableVoices.find(voice => voice.lang === (currentLanguage === 'ru' ? 'ru-RU' : 'en-US')) || availableVoices[0];
+            console.warn(`No matching voice for ${voiceGender} in ${currentLanguage}. Using fallback: ${selectedVoice ? selectedVoice.name : 'none'}`);
+        }
+
+        if (selectedVoice) {
+            utterance.voice = selectedVoice;
+            console.log(`Selected voice: ${selectedVoice.name} (${selectedVoice.lang})`);
+        }
+
+        utterance.onerror = (event) => console.error("Speech error:", event.error);
+        speechSynthesis.speak(utterance);
+    } catch (error) {
+        console.error("Error in speak function:", error);
     }
 }
 
@@ -544,95 +688,102 @@ function restartGame() {
             difficultyLevel = 'hard';
             break;
     }
-    currentMove.textContent = translations[currentLanguage].flyWaiting;
+    gameState = 'start';
+    currentMoveCount = 0;
+    moveQueue = [];
+    isMoving = false;
+    flyVisible = true;
     startGame(difficultyLevel);
 }
 
-function showInstructions() {
-    instructionsScreen.style.display = 'flex';
-    // page1.style.display = 'block';
-    // page2.style.display = 'none';
-    // page3.style.display = 'none';
-}
-
-function hideInstructions() {
-    instructionsScreen.style.display = 'none';
-    // page1.style.display = 'none';
-    // page2.style.display = 'none';
-    // page3.style.display = 'none';
-}
-
 function showDifficultyScreen() {
-    homeScreen.style.display = 'none';
-    difficultyScreen.style.display = 'block';
-    movesLeft.style.display = 'none';
-    currentMove.style.display = 'none';
-    startGameButton.style.display = 'none';
-    menuToggle.style.display = 'none';
-    standaloneMenu.style.display = 'block';
+    if (homeScreen) homeScreen.style.display = 'none';
+    if (difficultyScreen) difficultyScreen.style.display = 'block';
+    if (movesLeft) movesLeft.style.display = 'none';
+    if (currentMove) currentMove.style.display = 'none';
+    if (startGameButton) startGameButton.style.display = 'none';
+    if (menuToggle) menuToggle.style.display = 'none';
+    if (standaloneMenu) standaloneMenu.style.display = 'block';
 }
 
 function showGeneralSettingsScreen() {
-    homeScreen.style.display = 'none';
-    generalSettingsScreen.style.display = 'block';
-    movesLeft.style.display = 'none';
-    currentMove.style.display = 'none';
-    startGameButton.style.display = 'none';
-    menuToggle.style.display = 'none';
-    standaloneMenu.style.display = 'block';
+    if (homeScreen) homeScreen.style.display = 'none';
+    if (generalSettingsScreen) generalSettingsScreen.style.display = 'block';
+    if (movesLeft) movesLeft.style.display = 'none';
+    if (currentMove) currentMove.style.display = 'none';
+    if (startGameButton) startGameButton.style.display = 'none';
+    if (menuToggle) menuToggle.style.display = 'none';
+    if (standaloneMenu) standaloneMenu.style.display = 'block';
 }
 
 function showCustomSettingsScreen() {
-    difficultyScreen.style.display = 'none';
-    customSettingsScreen.style.display = 'block';
-    gridSizeValue.textContent = `${gridSize}×${gridSize}`;
-    movesLeft.style.display = 'none';
-    currentMove.style.display = 'none';
-    startGameButton.style.display = 'none';
-    menuToggle.style.display = 'none';
-    standaloneMenu.style.display = 'block';
+    if (difficultyScreen) difficultyScreen.style.display = 'none';
+    if (customSettingsScreen) customSettingsScreen.style.display = 'block';
+    if (gridSizeValue) gridSizeValue.textContent = `${gridSize}×${gridSize}`;
+    if (stepsValue) stepsValue.textContent = totalMoves;
+    if (movesLeft) movesLeft.style.display = 'none';
+    if (currentMove) currentMove.style.display = 'none';
+    if (startGameButton) startGameButton.style.display = 'none';
+    if (menuToggle) menuToggle.style.display = 'none';
+    if (standaloneMenu) standaloneMenu.style.display = 'block';
 }
 
 function goBack() {
     const currentScreen = document.querySelector('.screen:not([style*="display: none"])');
     if (currentScreen === difficultyScreen) {
-        difficultyScreen.style.display = 'none';
-        homeScreen.style.display = 'block';
-        menuToggle.style.display = 'none';
-        standaloneMenu.style.display = 'none';
+        if (difficultyScreen) difficultyScreen.style.display = 'none';
+        if (homeScreen) homeScreen.style.display = 'block';
+        if (menuToggle) menuToggle.style.display = 'none';
+        if (standaloneMenu) standaloneMenu.style.display = 'none';
     } else if (currentScreen === generalSettingsScreen) {
-        generalSettingsScreen.style.display = 'none';
-        homeScreen.style.display = 'block';
-        menuToggle.style.display = 'none';
-        standaloneMenu.style.display = 'none';
+        if (generalSettingsScreen) generalSettingsScreen.style.display = 'none';
+        if (homeScreen) homeScreen.style.display = 'block';
+        if (menuToggle) menuToggle.style.display = 'none';
+        if (standaloneMenu) standaloneMenu.style.display = 'none';
     } else if (currentScreen === customSettingsScreen) {
-        customSettingsScreen.style.display = 'none';
-        difficultyScreen.style.display = 'block';
-        menuToggle.style.display = 'none';
-        standaloneMenu.style.display = 'block';
+        if (customSettingsScreen) customSettingsScreen.style.display = 'none';
+        if (difficultyScreen) difficultyScreen.style.display = 'block';
+        if (menuToggle) menuToggle.style.display = 'none';
+        if (standaloneMenu) standaloneMenu.style.display = 'block';
     } else if (currentScreen === gameScreen) {
-        gameScreen.style.display = 'none';
-        difficultyScreen.style.display = 'block';
-        menuToggle.style.display = 'none';
-        standaloneMenu.style.display = 'block';
+        if (gameScreen) gameScreen.style.display = 'none';
+        if (difficultyScreen) difficultyScreen.style.display = 'block';
+        if (menuToggle) menuToggle.style.display = 'none';
+        if (standaloneMenu) standaloneMenu.style.display = 'block';
     }
-    movesLeft.style.display = 'none';
-    currentMove.style.display = 'none';
-    startGameButton.style.display = 'none';
+    if (movesLeft) movesLeft.style.display = 'none';
+    if (currentMove) currentMove.style.display = 'none';
+    if (startGameButton) startGameButton.style.display = 'none';
 }
 
 function applyGeneralSettings() {
-    volumeLevel = parseInt(volumeValue.value);
-    volumeDisplay.textContent = `${volumeLevel}%`;
+    if (volumeValue) {
+        volumeLevel = parseInt(volumeValue.value);
+        if (volumeDisplay) volumeDisplay.textContent = `${volumeLevel}%`;
+    }
     startGame('easy');
 }
 
 async function applyCustomSettings() {
-    flySpeed = parseFloat(speedValue.value);
-    speedDisplay.textContent = `x${flySpeed}`;
-    totalMoves = parseInt(stepsValue.textContent);
-    const gridSizeText = gridSizeValue.textContent;
-    gridSize = parseInt(gridSizeText.split('×')[0]);
+    if (stepsValue) totalMoves = parseInt(stepsValue.textContent);
+    if (gridSizeValue) {
+        const gridSizeText = gridSizeValue.textContent;
+        gridSize = parseInt(gridSizeText.split('×')[0]);
+    }
+
+    switch (gridSize) {
+        case 3:
+            flySpeed = 0.5;
+            break;
+        case 4:
+            flySpeed = 1.0;
+            break;
+        case 5:
+            flySpeed = 1.5;
+            break;
+    }
+    if (speedValue) speedValue.value = flySpeed;
+    if (speedDisplay) speedDisplay.textContent = `x${flySpeed}`;
     moveDelay = 1000 / flySpeed;
 
     let difficultyLevel;
@@ -675,162 +826,208 @@ async function setDifficulty(level) {
     switch (level) {
         case 'easy':
             gridSize = 3;
-            totalMoves = 5;
+            totalMoves = Math.min(totalMoves, 100);
             flySpeed = 0.5;
             break;
         case 'normal':
             gridSize = 4;
-            totalMoves = 8;
+            totalMoves = Math.min(totalMoves, 100);
             flySpeed = 1.0;
             break;
         case 'hard':
             gridSize = 5;
-            totalMoves = 12;
+            totalMoves = Math.min(totalMoves, 100);
             flySpeed = 1.5;
             break;
     }
-    speedValue.value = flySpeed;
-    speedDisplay.textContent = `x${flySpeed}`;
-    stepsValue.textContent = totalMoves;
-    gridSizeValue.textContent = `${gridSize}×${gridSize}`;
+    if (speedValue) speedValue.value = flySpeed;
+    if (speedDisplay) speedDisplay.textContent = `x${flySpeed}`;
+    if (stepsValue) stepsValue.textContent = totalMoves;
+    if (gridSizeValue) gridSizeValue.textContent = `${gridSize}×${gridSize}`;
     moveDelay = 1000 / flySpeed;
 
-    // try {
-    const difficultyResponse = await fetch(`http://127.0.0.1:8000/difficulty/${level}`, {
-        method: 'POST'
-    });
+    try {
+        const difficultyResponse = await fetch(`http://127.0.0.1:8000/difficulty/${level}`, {
+            method: 'POST'
+        });
 
-    if (!difficultyResponse.ok) {
-        const errText = await difficultyResponse.text();
-        throw new Error(`Difficulty error: ${errText}`);
+        if (!difficultyResponse.ok) {
+            const errText = await difficultyResponse.text();
+            throw new Error(`Difficulty error: ${errText}`);
+        }
+
+        const playResponse = await fetch(`http://127.0.0.1:8000/play`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        if (!playResponse.ok) {
+            const errText = await playResponse.text();
+            throw new Error(`Play error: ${errText}`);
+        }
+
+        const gameData = await playResponse.json();
+        console.log("Game path from backend:", gameData.path);
+
+        startGame(level);
+    } catch (error) {
+        console.error("Error setting difficulty or starting game:", error);
+        alert("Error starting game. Check console for details.");
     }
-
-    const playResponse = await fetch(`http://127.0.0.1:8000/play`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-    });
-
-    if (!playResponse.ok) {
-        const errText = await playResponse.text();
-        throw new Error(`Play error: ${errText}`);
-    }
-
-    const gameData = await playResponse.json();
-    console.log("Game path from backend:", gameData.path);
-
-    moveQueue = gameData.path.directions;
-    flyRoute = gameData.path.route;
-    flyAudio = gameData.path.audio_urls;
-
-    startGame(level);
-    // } catch (error) {
-    //     console.error("Error setting difficulty or starting game:", error);
-    //     alert("Error starting game. Check console for details.");
-    // }
 }
 
 function updateGeneralSettingsValues() {
-    volumeValue.addEventListener('input', () => {
-        volumeLevel = parseInt(volumeValue.value);
-        volumeDisplay.textContent = `${volumeLevel}%`;
-    });
+    if (volumeValue && volumeDisplay) {
+        volumeValue.addEventListener('input', () => {
+            volumeLevel = parseInt(volumeValue.value);
+            volumeDisplay.textContent = `${volumeLevel}%`;
+        });
+    }
 
-    const voiceDecrease = voiceValue.parentElement.querySelector('.decrease');
-    const voiceIncrease = voiceValue.parentElement.querySelector('.increase');
-    let voiceIndex = voiceOptions.indexOf(voiceGender);
-    voiceValue.textContent = voiceOptions[voiceIndex] || voiceOptions[0];
-    voiceDecrease.addEventListener('click', () => {
-        voiceIndex = (voiceIndex > 0) ? voiceIndex - 1 : voiceOptions.length - 1;
-        voiceValue.textContent = voiceOptions[voiceIndex];
-        voiceGender = voiceOptions[voiceIndex];
-    });
-    voiceIncrease.addEventListener('click', () => {
-        voiceIndex = (voiceIndex < voiceOptions.length - 1) ? voiceIndex + 1 : 0;
-        voiceValue.textContent = voiceOptions[voiceIndex];
-        voiceGender = voiceOptions[voiceIndex];
-    });
+    if (voiceValue) {
+        const voiceDecrease = voiceValue.parentElement.querySelector('.decrease');
+        const voiceIncrease = voiceValue.parentElement.querySelector('.increase');
+        let voiceIndex = voiceOptions.indexOf(voiceGender);
+        voiceValue.textContent = voiceOptions[voiceIndex] || voiceOptions[0];
 
-    const characterDecrease = characterValue.parentElement.querySelector('.decrease');
-    const characterIncrease = characterValue.parentElement.querySelector('.increase');
-    let characterIndex = characterOptions.indexOf(character);
-    characterValue.textContent = characterOptions[characterIndex] || characterOptions[0];
-    characterDecrease.addEventListener('click', () => {
-        characterIndex = (characterIndex > 0) ? characterIndex - 1 : characterOptions.length - 1;
-        characterValue.textContent = characterOptions[characterIndex];
-        character = characterOptions[characterIndex];
-    });
-    characterIncrease.addEventListener('click', () => {
-        characterIndex = (characterIndex < characterOptions.length - 1) ? characterIndex + 1 : 0;
-        characterValue.textContent = characterOptions[characterIndex];
-        character = characterOptions[characterIndex];
-    });
+        if (voiceDecrease) {
+            voiceDecrease.addEventListener('click', () => {
+                voiceIndex = (voiceIndex > 0) ? voiceIndex - 1 : voiceOptions.length - 1;
+                voiceValue.textContent = voiceOptions[voiceIndex];
+                voiceGender = voiceOptions[voiceIndex];
+                if (currentLanguage === 'ru') {
+                    voiceGender = voiceGender === 'Male' ? 'Мужчина' : voiceGender === 'Female' ? 'Женщина' : voiceGender;
+                } else {
+                    voiceGender = voiceGender === 'Мужчина' ? 'Male' : voiceGender === 'Женщина' ? 'Female' : voiceGender;
+                }
+                console.log(`Voice gender updated to: ${voiceGender}`);
+            });
+        }
+
+        if (voiceIncrease) {
+            voiceIncrease.addEventListener('click', () => {
+                voiceIndex = (voiceIndex < voiceOptions.length - 1) ? voiceIndex + 1 : 0;
+                voiceValue.textContent = voiceOptions[voiceIndex];
+                voiceGender = voiceOptions[voiceIndex];
+                if (currentLanguage === 'ru') {
+                    voiceGender = voiceGender === 'Male' ? 'Мужчина' : voiceGender === 'Female' ? 'Женщина' : voiceGender;
+                } else {
+                    voiceGender = voiceGender === 'Мужчина' ? 'Male' : voiceGender === 'Женщина' ? 'Female' : voiceGender;
+                }
+                console.log(`Voice gender updated to: ${voiceGender}`);
+            });
+        }
+    }
+
+    if (characterValue) {
+        const characterDecrease = characterValue.parentElement.querySelector('.decrease');
+        const characterIncrease = characterValue.parentElement.querySelector('.increase');
+        let characterIndex = characterOptions.indexOf(character);
+        characterValue.textContent = characterOptions[characterIndex] || characterOptions[0];
+
+        if (characterDecrease) {
+            characterDecrease.addEventListener('click', () => {
+                characterIndex = (characterIndex > 0) ? characterIndex - 1 : characterOptions.length - 1;
+                characterValue.textContent = characterOptions[characterIndex];
+                character = characterOptions[characterIndex];
+            });
+        }
+
+        if (characterIncrease) {
+            characterIncrease.addEventListener('click', () => {
+                characterIndex = (characterIndex < characterOptions.length - 1) ? characterIndex + 1 : 0;
+                characterValue.textContent = characterOptions[characterIndex];
+                character = characterOptions[characterIndex];
+            });
+        }
+    }
 }
 
 function updateCustomSettingsValues() {
-    speedValue.addEventListener('input', () => {
-        flySpeed = parseFloat(speedValue.value);
-        speedDisplay.textContent = `x${flySpeed}`;
-    });
+    if (stepsValue) {
+        const stepsDecrease = stepsValue.parentElement.querySelector('.decrease');
+        const stepsIncrease = stepsValue.parentElement.querySelector('.increase');
 
-    stepsValue.parentElement.querySelector('.decrease').addEventListener('click', () => {
-        let steps = parseInt(stepsValue.textContent);
-        steps = Math.max(1, steps - 1);
-        stepsValue.textContent = steps;
-    });
+        if (stepsDecrease) {
+            stepsDecrease.addEventListener('click', () => {
+                let steps = parseInt(stepsValue.textContent);
+                steps = Math.max(1, steps - 1);
+                stepsValue.textContent = steps;
+                totalMoves = steps;
+            });
+        }
 
-    stepsValue.parentElement.querySelector('.increase').addEventListener('click', () => {
-        let steps = parseInt(stepsValue.textContent);
-        steps = Math.min(20, steps + 1);
-        stepsValue.textContent = steps;
-    });
+        if (stepsIncrease) {
+            stepsIncrease.addEventListener('click', () => {
+                let steps = parseInt(stepsValue.textContent);
+                steps = Math.min(100, steps + 1);
+                stepsValue.textContent = steps;
+                totalMoves = steps;
+            });
+        }
+    }
 
-    const gridSizeDecrease = gridSizeValue.parentElement.querySelector('.decrease');
-    const gridSizeIncrease = gridSizeValue.parentElement.querySelector('.increase');
-    let currentGridIndex = gridSizes.indexOf(gridSizeValue.textContent);
+    if (gridSizeValue) {
+        const gridSizeDecrease = gridSizeValue.parentElement.querySelector('.decrease');
+        const gridSizeIncrease = gridSizeValue.parentElement.querySelector('.increase');
+        let currentGridIndex = gridSizes.indexOf(gridSizeValue.textContent);
 
-    gridSizeDecrease.addEventListener('click', () => {
-        currentGridIndex = Math.max(0, currentGridIndex - 1);
-        gridSizeValue.textContent = gridSizes[currentGridIndex];
-        gridSize = parseInt(gridSizes[currentGridIndex].split('×')[0]);
-    });
+        if (gridSizeDecrease) {
+            gridSizeDecrease.addEventListener('click', () => {
+                currentGridIndex = Math.max(0, currentGridIndex - 1);
+                gridSizeValue.textContent = gridSizes[currentGridIndex];
+                gridSize = parseInt(gridSizes[currentGridIndex].split('×')[0]);
+                if (stepsValue) stepsValue.textContent = Math.min(parseInt(stepsValue.textContent), 100);
+                totalMoves = parseInt(stepsValue.textContent);
+                flySpeed = gridSize === 3 ? 0.5 : gridSize === 4 ? 1.0 : 1.5;
+                if (speedValue) speedValue.value = flySpeed;
+                if (speedDisplay) speedDisplay.textContent = `x${flySpeed}`;
+                moveDelay = 1000 / flySpeed;
+            });
+        }
 
-    gridSizeIncrease.addEventListener('click', () => {
-        currentGridIndex = Math.min(gridSizes.length - 1, currentGridIndex + 1);
-        gridSizeValue.textContent = gridSizes[currentGridIndex];
-        gridSize = parseInt(gridSizes[currentGridIndex].split('×')[0]);
-    });
+        if (gridSizeIncrease) {
+            gridSizeIncrease.addEventListener('click', () => {
+                currentGridIndex = Math.min(gridSizes.length - 1, currentGridIndex + 1);
+                gridSizeValue.textContent = gridSizes[currentGridIndex];
+                gridSize = parseInt(gridSizes[currentGridIndex].split('×')[0]);
+                if (stepsValue) stepsValue.textContent = Math.min(parseInt(stepsValue.textContent), 100);
+                totalMoves = parseInt(stepsValue.textContent);
+                flySpeed = gridSize === 3 ? 0.5 : gridSize === 4 ? 1.0 : 1.5;
+                if (speedValue) speedValue.value = flySpeed;
+                if (speedDisplay) speedDisplay.textContent = `x${flySpeed}`;
+                moveDelay = 1000 / flySpeed;
+            });
+        }
+    }
 }
 
 function loadSavedSettings() {
     const savedLanguage = localStorage.getItem('flyGameLanguage');
     if (savedLanguage) {
         currentLanguage = savedLanguage;
-        languageRu.classList.toggle('active', savedLanguage === 'ru');
-        languageEn.classList.toggle('active', savedLanguage === 'en');
+        if (languageRu) languageRu.classList.toggle('active', savedLanguage === 'ru');
+        if (languageEn) languageEn.classList.toggle('active', savedLanguage === 'en');
     }
-
-    soundOn = localStorage.getItem('flyGameSound') !== 'false';
-    soundButton.textContent = soundOn ? translations[currentLanguage].soundOn : translations[currentLanguage].soundOff;
-
     updateLanguage();
 }
 
 function updateRulesLanguage(lang) {
     const t = translations[lang];
-    rulesTitle.textContent = t.rulesTitle;
-    rulesText1.textContent = t.rulesText1;
-    rulesText2.textContent = t.rulesText2;
-    rulesText3.textContent = t.rulesText3;
+    if (rulesTitle) rulesTitle.textContent = t.rulesTitle;
+    if (rulesText1) rulesText1.textContent = t.rulesText1;
+    if (rulesText2) rulesText2.textContent = t.rulesText2;
+    if (rulesText3) rulesText3.textContent = t.rulesText3;
 }
 
 function showRulesModal() {
     rulesLanguage = currentLanguage;
     updateRulesLanguage(rulesLanguage);
-    rulesModal.style.display = 'flex';
+    if (rulesModal) rulesModal.style.display = 'flex';
 }
 
 function closeRulesModal() {
-    rulesModal.style.display = 'none';
+    if (rulesModal) rulesModal.style.display = 'none';
 }
 
 function toggleRulesLanguage(direction) {
@@ -842,73 +1039,56 @@ function toggleRulesLanguage(direction) {
     updateRulesLanguage(rulesLanguage);
 }
 
-playButton.addEventListener('click', showDifficultyScreen);
-settingsButton.addEventListener('click', showGeneralSettingsScreen);
-exitButton.addEventListener('click', () => window.close());
-easyButton.addEventListener('click', () => setDifficulty('easy'));
-easyButton.addEventListener('contextmenu', (e) => {
-    e.preventDefault();
-    difficultyScreen.style.display = 'none';
-    homeScreen.style.display = 'block';
-    menuToggle.style.display = 'none';
-    standaloneMenu.style.display = 'none';
-});
-normalButton.addEventListener('click', () => setDifficulty('normal'));
-normalButton.addEventListener('contextmenu', (e) => {
-    e.preventDefault();
-    difficultyScreen.style.display = 'none';
-    homeScreen.style.display = 'block';
-    menuToggle.style.display = 'none';
-    standaloneMenu.style.display = 'none';
-});
-hardButton.addEventListener('click', () => setDifficulty('hard'));
-hardButton.addEventListener('contextmenu', (e) => {
-    e.preventDefault();
-    difficultyScreen.style.display = 'none';
-    homeScreen.style.display = 'block';
-    menuToggle.style.display = 'none';
-    standaloneMenu.style.display = 'none';
-});
-difficultySettingsButton.addEventListener('click', showCustomSettingsScreen);
-startSettingsButton.addEventListener('click', applyCustomSettings);
-startGameButton.addEventListener('click', moveStepByStep);
-restartButton.addEventListener('click', restartGame);
-soundButton.addEventListener('click', toggleSound);
-languageRu.addEventListener('click', () => setLanguage('ru'));
-languageEn.addEventListener('click', () => setLanguage('en'));
-menuButton.addEventListener('click', goBack);
-menuButtonStandalone.addEventListener('click', goBack);
-rulesButton.addEventListener('click', showRulesModal);
-closeRules.addEventListener('click', closeRulesModal);
-rulesPrev.addEventListener('click', () => toggleRulesLanguage('prev'));
-rulesNext.addEventListener('click', () => toggleRulesLanguage('next'));
-// helpButton.addEventListener('click', showInstructions);
-document.getElementById('menu-button-standalone').addEventListener('click', goBack);
+// إضافة Event Listeners مع التحقق من وجود العناصر
+if (playButton) playButton.addEventListener('click', showDifficultyScreen);
+if (settingsButton) settingsButton.addEventListener('click', showGeneralSettingsScreen);
+if (exitButton) exitButton.addEventListener('click', () => window.close());
+if (easyButton) {
+    easyButton.addEventListener('click', () => setDifficulty('easy'));
+    easyButton.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        if (difficultyScreen) difficultyScreen.style.display = 'none';
+        if (homeScreen) homeScreen.style.display = 'block';
+        if (menuToggle) menuToggle.style.display = 'none';
+        if (standaloneMenu) standaloneMenu.style.display = 'none';
+    });
+}
+if (normalButton) {
+    normalButton.addEventListener('click', () => setDifficulty('normal'));
+    normalButton.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        if (difficultyScreen) difficultyScreen.style.display = 'none';
+        if (homeScreen) homeScreen.style.display = 'block';
+        if (menuToggle) menuToggle.style.display = 'none';
+        if (standaloneMenu) standaloneMenu.style.display = 'none';
+    });
+}
+if (hardButton) {
+    hardButton.addEventListener('click', () => setDifficulty('hard'));
+    hardButton.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        if (difficultyScreen) difficultyScreen.style.display = 'none';
+        if (homeScreen) homeScreen.style.display = 'block';
+        if (menuToggle) menuToggle.style.display = 'none';
+        if (standaloneMenu) standaloneMenu.style.display = 'none';
+    });
+}
+if (difficultySettingsButton) difficultySettingsButton.addEventListener('click', showCustomSettingsScreen);
+if (startSettingsButton) startSettingsButton.addEventListener('click', applyCustomSettings);
+if (startGameButton) startGameButton.addEventListener('click', moveStepByStep);
+if (restartButton) restartButton.addEventListener('click', restartGame);
+if (languageRu) languageRu.addEventListener('click', () => setLanguage('ru'));
+if (languageEn) languageEn.addEventListener('click', () => setLanguage('en'));
+if (menuButton) menuButton.addEventListener('click', goBack);
+if (menuButtonStandalone) menuButtonStandalone.addEventListener('click', goBack);
+if (rulesButton) rulesButton.addEventListener('click', showRulesModal);
+if (closeRules) closeRules.addEventListener('click', closeRulesModal);
+if (rulesPrev) rulesPrev.addEventListener('click', () => toggleRulesLanguage('prev'));
+if (rulesNext) rulesNext.addEventListener('click', () => toggleRulesLanguage('next'));
 
-// page1.querySelector('.next-page').addEventListener('click', () => {
-//     page1.style.display = 'none';
-//     page2.style.display = 'block';
-// });
-
-// page2.querySelector('.next-page').addEventListener('click', () => {
-//     page2.style.display = 'none';
-//     page3.style.display = 'block';
-// });
-
-// page2.querySelector('.prev-page').addEventListener('click', () => {
-//     page2.style.display = 'none';
-//     page1.style.display = 'block';
-// });
-
-// page3.querySelector('.prev-page').addEventListener('click', () => {
-//     page3.style.display = 'none';
-//     page2.style.display = 'block';
-// });
-
-document.querySelectorAll('.close-instructions').forEach(button => {
-    button.addEventListener('click', hideInstructions);
-});
-
-loadSavedSettings();
+// تشغيل التهيئة
+initializeScreens();
+loadVoices();
 updateGeneralSettingsValues();
 updateCustomSettingsValues();
+loadSavedSettings();
